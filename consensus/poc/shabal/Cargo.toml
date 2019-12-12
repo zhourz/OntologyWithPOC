@@ -1,0 +1,27 @@
+[package]
+name = "shabal"
+version = "0.2.0"
+authors = ["bold <bold@cryptoguru.com>"]
+license = "MIT OR Apache-2.0"
+description = "Shabal hash functions"
+documentation = "https://docs.rs/shabal"
+repository = "https://github.com/spebern/shabal-rs"
+keywords = ["crypto", "shabal", "hash", "digest"]
+categories = ["cryptography", "no-std"]
+
+[dependencies]
+digest = "0.8.0"
+block-buffer = "0.7.3"
+opaque-debug = "0.2.2"
+libc = "*"
+
+[dev-dependencies]
+digest = { version = "0.8.0", features = ["dev"] }
+hex-literal = "0.2.0"
+
+[features]
+default = ["std"]
+std = ["digest/std"]
+
+[lib]
+crate-type = ["cdylib"]
