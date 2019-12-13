@@ -2213,7 +2213,7 @@ func (self *Server) calDeadLine() {
 	self.quitWg.Add(1)
 	defer self.quitWg.Done()
 
-	ticker := time.NewTicker(time.Second * 30)
+	ticker := time.NewTicker(time.Second * 3)
 	for {
 		select {
 		case <-ticker.C:
@@ -2225,13 +2225,21 @@ func (self *Server) calDeadLine() {
 			if err != nil {
 				log.Error(err)
 			}
-
+			var rdl []os.FileInfo
 			if len(rd) > 0 {
-				fi := rd[rand.Intn(len(rd))]
+				for i := 0; i < 20; i++ {
+					rdl = append(rdl, rd[rand.Intn(len(rd))])
+				}
+			}
+
+			var deadlines []int
+			for i := 0; i < len(rdl); i++ {
+				fi := rdl[i]
 
 				if fi.IsDir() {
 					log.Info("[%s]\n", config.DefConfig.Genesis.POC.NonceDir+"\\"+fi.Name())
 					//GetAllFile(pathname + fi.Name() + "\\")
+					continue
 				} else if fi.Name() == ".DS_Store" {
 					continue
 				} else {
@@ -2242,60 +2250,62 @@ func (self *Server) calDeadLine() {
 						}
 						continue
 					}
-					nonceFile, err := os.OpenFile(config.DefConfig.Genesis.POC.NonceDir+"/"+fi.Name(), os.O_RDONLY, 0600)
-					if err != nil {
-						log.Error(err)
-					}
-					nonceByte, err := ioutil.ReadAll(nonceFile)
-					if err != nil {
-						log.Error(err)
-					}
-					_ = nonceFile.Close()
-					if len(nonceByte) == 0 {
-						err := os.Remove(config.DefConfig.Genesis.POC.NonceDir + "/" + fi.Name())
+					if err := func() error {
+						nonceFile, err := os.OpenFile(config.DefConfig.Genesis.POC.NonceDir+"/"+fi.Name(), os.O_RDONLY, 0600)
 						if err != nil {
-							log.Error(err)
+							return err
 						}
-						continue
-					}
-					Callshabal("genHash_Target256", []byte(strconv.FormatUint(blk.Block.Header.ConsensusData, 10)),
-						[]byte(strconv.FormatUint(uint64(blk.Info.Proposer), 10)), []byte(fi.Name()),
-						[]byte(config.DefConfig.Genesis.POC.NonceDir), []byte(fi.Name()))
-					fileObj, err := os.Open(config.DefConfig.Genesis.POC.NonceDir + "/target" + fi.Name())
-					if err != nil {
-						//log.Warn(err)
-						continue
-					}
-					target, err := ioutil.ReadAll(fileObj)
-					if err != nil {
-						log.Error(err)
-					}
-					target0Int, err := self.bytesToIntU(target[0:4])
-					if err != nil {
-						log.Error(err)
-					}
-					baseTargetInt, err := self.bytesToIntU(blk.Block.Header.ConsensusPayload[0:1])
-					if err != nil {
-						log.Error(err)
-					}
+						defer nonceFile.Close()
+						nonceByte, err := ioutil.ReadAll(nonceFile)
+						if err != nil {
+							return err
+						}
+						if len(nonceByte) == 0 {
+							err := os.Remove(config.DefConfig.Genesis.POC.NonceDir + "/" + fi.Name())
+							if err != nil {
+								return err
+							}
+						}
+						Callshabal("genHash_Target256", []byte(strconv.FormatUint(blk.Block.Header.ConsensusData, 10)),
+							[]byte(strconv.FormatUint(uint64(blk.Info.Proposer), 10)), []byte(fi.Name()),
+							[]byte(config.DefConfig.Genesis.POC.NonceDir), []byte(fi.Name()))
+						fileObj, err := os.Open(config.DefConfig.Genesis.POC.NonceDir + "/target" + fi.Name())
+						if err != nil {
+							return err
+						}
+						defer fileObj.Close()
+						target, err := ioutil.ReadAll(fileObj)
+						if err != nil {
+							return err
+						}
+						target0Int, err := self.bytesToIntU(target[0:4])
+						if err != nil {
+							return err
+						}
+						baseTargetInt, err := self.bytesToIntU(blk.Block.Header.ConsensusPayload[0:1])
+						if err != nil {
+							return err
+						}
 
-					var deadlines []int
-					if target0Int != 0 {
-						deadlines = append(deadlines, target0Int/baseTargetInt)
-					}
-					_ = fileObj.Close()
-					err = os.Remove(config.DefConfig.Genesis.POC.NonceDir + "/target" + fi.Name())
-					if err != nil {
+						if target0Int != 0 {
+							deadlines = append(deadlines, target0Int/baseTargetInt)
+						}
+						err = os.Remove(config.DefConfig.Genesis.POC.NonceDir + "/target" + fi.Name())
+						if err != nil {
+							return err
+						}
+						return nil
+					}(); err != nil {
 						log.Error(err)
 						continue
-					}
-					sort.Sort(sort.IntSlice(deadlines))
-					if len(deadlines) > 0 {
-						self.deadline = uint64(deadlines[0])
-					} else {
-						self.deadline = uint64(baseTargetInt / target0Int)
 					}
 				}
+			}
+
+			sort.Sort(sort.IntSlice(deadlines))
+			if len(deadlines) > 0 {
+				self.deadline = uint64(deadlines[0])
+			} else {
 			}
 		}
 	}
