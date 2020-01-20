@@ -875,7 +875,7 @@ func (this *LedgerStoreImp) releaseSavingBlockLock() {
 	}
 }
 
-//saveBlock do the job of execution samrt contract and commit block to store.
+//saveBlock do the job of execution smart contract and commit block to store.
 func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.ExecuteResult) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
@@ -925,7 +925,7 @@ func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.Execute
 	return nil
 }
 
-//saveBlock do the job of execution samrt contract and commit block to store.
+//saveBlock do the job of execution smart contract and commit block to store.
 func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common.Uint256) error {
 	blockHeight := block.Header.Height
 	if this.tryGetSavingBlockLock() {

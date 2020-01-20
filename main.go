@@ -142,7 +142,7 @@ func main() {
 	//runtime.SetBlockProfileRate(1)
 
 	//os.Args = append(os.Args, "--testmode")
-	os.Args = append(os.Args, "--enable-consensus")
+	//os.Args = append(os.Args, "--enable-consensus")
 
 	go func() {
 		if err := http.ListenAndServe(":6060", nil); err != nil {

@@ -64,7 +64,7 @@ var GenesisBookkeepers []keypair.PublicKey
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
 func BuildGenesisBlock(defaultBookkeeper []keypair.PublicKey, genesisConfig *config.GenesisConfig) (*types.Block, error) {
 	consensusType := strings.ToLower(config.DefConfig.Genesis.ConsensusType)
-	if consensusType == "vbft" {
+	if consensusType == "vbft" || consensusType == "solo" {
 		//getBookkeeper
 		GenesisBookkeepers = defaultBookkeeper
 		nextBookkeeper, err := types.AddressFromBookkeepers(defaultBookkeeper)
