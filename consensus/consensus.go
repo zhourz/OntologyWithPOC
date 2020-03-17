@@ -38,6 +38,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	_ "unsafe"
 )
 
 type ConsensusService interface {

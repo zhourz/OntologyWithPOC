@@ -205,13 +205,13 @@ var PolarisConfig = &GenesisConfig{
 
 var MainNetConfig = &GenesisConfig{
 	SeedList: []string{
-		"seed1.gechain.io:20338",
-		"seed2.gechain.io:20338",
-		"seed3.gechain.io:20338",
-		"seed4.gechain.io:20338",
-		"seed5.gechain.io:20338",
-		"seed6.gechain.io:20338",
-		"seed7.gechain.io:20338",
+		"192.168.31.199:20338",
+		"192.168.10.21:20338",
+		"192.168.10.13:20338",
+		"192.168.10.29:20338",
+		"192.168.10.18:20338",
+		"192.168.10.28:20338",
+		"192.168.10.19:20338",
 	},
 	ConsensusType: CONSENSUS_TYPE_POC,
 	VBFT: &VBFTConfig{
